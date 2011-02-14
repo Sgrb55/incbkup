@@ -11,9 +11,10 @@ var nodrv,freen,driven,namef,a0
 var nndel,tedel,deltim,era
 var version
 
-version=" incbkup 1.12.1 21.12.2010 "
+version=" incbkup 1.12.- 21.12.2010 "
 
 // имя бэкап сервера по умолчанию
+//
 bkserv="\\\\priz-backup\\"
 
 progpath=""
