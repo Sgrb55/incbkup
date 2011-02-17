@@ -11,10 +11,9 @@ var nodrv,freen,driven,namef,a0
 var nndel,tedel,deltim,era
 var version
 
-version=" incbkup 1.12.- 21.12.2010 "
+version=" incbkup 1.13 3.2.2011 "
 
 // имя бэкап сервера по умолчанию
-//
 bkserv="\\\\priz-backup\\"
 
 progpath=""
@@ -30,10 +29,11 @@ nndel=0
 tedel=""
 era=""
 nszera="" 
+
 //
 // обработка аргументов
 //
-// incbkup.js [i|f|fu|?d|<число>d] [<куда писать>|-] [<число>w|<число>m] [e] [число]
+// incbkup.js [i|f|fu|?d|<число>d] [<куда писать>|-] [<число>w|<число>m] [e] [число|числоK|числоM|числоG]
 
 // Первый параметр это тип бэкапа:
 //
@@ -69,7 +69,7 @@ nszera=""
 // кроме того проверяется своб.место хватит ли его на бэкап, считая р-р предыдущего полного бэкапа + 10%
 // в качестве прогнозируемого размера тек.бэкапа,
 // в случае инрементального бэкапа ничего не происходит.
-// кроме если не удается определить р-р бэкапа, если указано в командной строке <число>,
+// кроме если не удается определить р-р бэкапа, если указано в командной строке <число>(в Кило,Мега,Гига или просто байтах),
 // то оно используется в качестве р-ра предыдущего полного бэкапа, если <число> отсуствует 
 // Значение по умолчанию <пусто>, то есть ничего не удалять.
 //
@@ -154,7 +154,34 @@ if(deltim!=""){
     }
 }
 if(nndel<=0)nndel=1
-  
+
+if(nszera!=""){
+    if(/\d+G$/.test(nszera)){           //за ук.число недель
+            tmp=nszera.substr(0,nszera.length-1)
+            nsz=parseInt(tmp)*1000*1000*1000
+    } else if (/\d+g$/.test(nszera)){   //за ук.число суток
+            tmp=nszera.substr(0,nszera.length-1)
+            nsz=parseInt(tmp)*1000*1000*1000
+    } else if (/\d+m$/.test(nszera)){   //за ук.число месяцев
+            tmp=nszera.substr(0,nszera.length-1)
+            nsz=parseInt(tmp)*1000*1000
+    } else if (/\d+M$/.test(nszera)){   //за ук.число лет
+            tmp=nszera.substr(0,nszera.length-1)
+            nsz=parseInt(tmp)*1000*1000
+    } else if (/\d+k$/.test(nszera)){   //за ук.число месяцев
+            tmp=nszera.substr(0,nszera.length-1)
+            nsz=parseInt(tmp)*1000
+    } else if (/\d+K$/.test(nszera)){   //за ук.число лет
+            tmp=nszera.substr(0,nszera.length-1)
+            nsz=parseInt(tmp)*1000
+    } else if (/\d+$/.test(nszera)){   //за ук.число суток(дней)
+            nndel=parseInt(nszera)
+            nsz=parseInt(tmp)*1000
+    } else {
+      nsz=1000
+      nszera=""
+    }
+}  
 // WScript.Echo (deltim+" "+nndel+" "+tedel)
 
 testbk()   // проверим и подготовим место куда будем делать бэкап
@@ -180,6 +207,7 @@ while(!(inifo.AtEndOfStream)){
     bkupsrc[i] = inifo.ReadLine()
     if(bkupsrc[i].length==-1) break
     i=i+1
+
 }
 nsrc=i-1
 
@@ -293,7 +321,7 @@ if(OutDrvFspc/1048576<1000){
 bksz=getprevbksz()		// узнаем сколько будем писать!?
 
 if (bksz < -1){			// ошибка, видимо мы впервые пишем бэкап, поэтому будем безусловно писать !??
-	bksz=nszera		// 
+	bksz=nsz		// если мы не можем узнать размер прошлого бэкапа, берем из командной строки, или 1000!
 }
 
 if(deltim!=""){
@@ -351,9 +379,10 @@ if((driven=="Z")||(driven=="z")){
   }
 }
 
+// запишем информацию о начале и типе закончившегося бэкапа
 try {
     tf=fso.opentextfile(tfile,8,true)
-    fndate = edate.getMonth()+1
+    fndate = tempdate.getMonth()+1
     fndate = fndate+"/"+tempdate.getDate() + "/" + tempdate.getYear()
     tf.writeline(fndate+" "+outfp)
     tf.close()
@@ -481,6 +510,7 @@ function copy1folder(dirz)
               break
   case 1: writelog(wrlog+"rc="+rc+" : Предупредительная диагностика")
               break
+
   case 2: writelog(wrlog+"rc="+rc+" : Фатальная ошибка")
               break
   case 3: writelog(wrlog+"rc="+rc+" : Ошибка КС(CRC)")
@@ -813,6 +843,7 @@ function whererar()
     if(fso.FileExists(path+"\\rar.exe")){
       progpath=path
       return
+
     }
   }else {
     path=bkserv+"backbin"
