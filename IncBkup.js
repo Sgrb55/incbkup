@@ -1,5 +1,5 @@
 //*******************************************************************
-//* incbkup.js (grb)
+//* incbkup.js (sgrb)
 //*******************************************************************
 var fso = WScript.CreateObject("Scripting.FileSystemObject")
 var ntobj = WScript.CreateObject("WScript.Network")
@@ -11,7 +11,7 @@ var nodrv,freen,driven,namef,a0
 var nndel,tedel,deltim,era
 var version
 
-version=" incbkup 1.13 3.2.2011 "
+version=" incbkup 1.13 03.02.2011 "
 
 // им€ бэкап сервера по умолчанию
 bkserv="\\\\priz-backup\\"
@@ -107,7 +107,6 @@ if (objarg.length>0){
    era=""
 }
 
-
 // WScript.Echo (types+" "+bkuppc+" "+deltim)
 
 if(types=="i"){                   //простой инкрементальный (архивный бит)
@@ -153,6 +152,7 @@ if(deltim!=""){
       deltim=""
     }
 }
+
 if(nndel<=0)nndel=1
 
 if(nszera!=""){
@@ -182,6 +182,7 @@ if(nszera!=""){
       nszera=""
     }
 }  
+
 // WScript.Echo (deltim+" "+nndel+" "+tedel)
 
 testbk()   // проверим и подготовим место куда будем делать бэкап
@@ -359,8 +360,8 @@ if(deltim!=""){
 
 }
 
-//собственно производим копирование
 CopyAllFolders()
+//собственно производим копирование
 
 // удал€ем старые инкрементальные архивы если делаетс€ полный и это заказано
 if((outfp=="Full")&&(era=="e"))DeleteOldFolders("Inc",1)
@@ -428,8 +429,8 @@ function CopyAllFolders()
      " ѕосле: " + OutDrvFspcAfter/1048576+ " Mб")
 }
 
-//  опировать одну папку
 function copy1folder(dirz)
+//  опировать одну папку
 {
   //WScript.Echo("copy " + dirz)
 
@@ -805,8 +806,9 @@ function createus(pr,ne)
 }
 
 function nozfind()
+//поиск среди сетевых дисков етого самого диска Z: зачем? да на вс€кий случай чтоб не забыть как это делать
 {
-  //поиск среди сетевых дисков етого самого диска Z: зачем? да на вс€кий случай чтоб не забыть как это делать
+  
   var colDrives = ntobj.EnumNetworkDrives();
   var strMsg=""
 
@@ -835,6 +837,7 @@ function nozfind()
 }
 
 function whererar()
+// где же RAR
 {
   path="C:\\Program Files\\WinRAR"
 
@@ -842,7 +845,7 @@ function whererar()
     //MsgBox "ѕапка существует"
     if(fso.FileExists(path+"\\rar.exe")){
       progpath=path
-      return
+      return		
 
     }
   }else {
