@@ -11,7 +11,7 @@ var nodrv,freen,driven,namef,a0
 var nndel,tedel,deltim,era
 var version
 
-version=" incbkup 1.13 03.02.2011 "
+version=" incbkup 1.14 30.04.2011 "
 
 // имя бэкап сервера по умолчанию
 bkserv="\\\\priz-backup\\"
@@ -317,7 +317,7 @@ if(OutDrvFspc/1048576<1000){
     writelog("Маловато места на backup диске") // Инрформационное сообщение
 } 
 
-// удаляем старые архивы если это заказано
+// удаляем старые архивы если это заказано (только full!)
 
 bksz=getprevbksz()		// узнаем сколько будем писать!?
 
@@ -335,7 +335,7 @@ if(deltim!=""){
   }
 
   for(;;){
-   DeleteOldFolders(outfp,nndel)
+   DeleteOldFolders("Full",nndel)	// тут мы удаляем только full архивы 
    OutDrvFspc = OutDrvObj.FreeSpace
    if(era!="e"){
    	writelog("Свободно "+OutDrvFspc +" но мы чистку не заказали")
