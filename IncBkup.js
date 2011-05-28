@@ -11,7 +11,7 @@ var nodrv,freen,driven,namef,a0
 var nndel,tedel,deltim,era
 var version
 
-version=" incbkup 1.14 30.04.2011 "
+version=" incbkup 1.15 28.05.2011 "
 
 // имя бэкап сервера по умолчанию
 bkserv="\\\\priz-backup\\"
@@ -321,23 +321,23 @@ if(OutDrvFspc/1048576<1000){
 
 // удаляем старые архивы если это заказано (только full!)
 
-bksz=getprevbksz()		// узнаем сколько будем писать!?
+bksz=getprevbksz(outfp)		// узнаем сколько будем писать!?
 
 if (bksz < -1){			// ошибка, видимо мы впервые пишем бэкап, поэтому будем безусловно писать !??
-	bksz=nsz		// если мы не можем узнать размер прошлого бэкапа, берем из командной строки, или 1000!
+	bksz=nsz				// если мы не можем узнать размер прошлого бэкапа, берем из командной строки, или 1000!
 }
 
 if(deltim!=""){
   if(bksz>0){
 	bksz=bksz*1.1			// узнаем сколько будем писать!?
 	writelog("Предполагаемый р-р бэкапа: " + bksz/1048576+ " Mб")
-  }  else {			// в случае ошибок открытия соответсвующих папки и файлов 
+  }  else {					// в случае ошибок открытия соответсвующих папки и файлов 
 	brsz=1048576*50000	// и если нет р-ра, то это очень спорно, но пока вот так !???
 	writelog("Не могу узнать р-р бэкапа, поэтому от фонаря считаем нам нужно " + bksz/1048576+ " Mб")
   }
 
   for(;;){
-   DeleteOldFolders("Full",nndel)	// тут мы удаляем только full архивы 
+   DeleteOldFolders(outfp,nndel)	// тут мы удаляем только full архивы 
    OutDrvFspc = OutDrvObj.FreeSpace
    if(era!="e"){
    	writelog("Свободно "+OutDrvFspc +" но мы чистку не заказали")
@@ -865,8 +865,9 @@ function whererar()
 
 }
 
-function getprevbksz()
+function getprevbksz(outfpp)
 // получить размер предыдущего полного бэкапа
+// outfpp - тип (Full/Inc) бэкапа
 {
   
   tt=""
@@ -890,7 +891,7 @@ function getprevbksz()
       ts = tf.ReadLine()
       if(ts.length==-1) break
       tts=ts.split(" ")
-      if(tts[1]=="Full"){
+      if(tts[1]==outfpp){
 		  tt=tts
 	  }
       i=i+1
