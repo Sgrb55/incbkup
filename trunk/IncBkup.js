@@ -337,7 +337,7 @@ if(deltim!=""){
   }
 
   for(;;){
-   DeleteOldFolders(outfp,nndel)	// тут мы удаляем только full архивы 
+   DeleteOldFolders("Full",nndel)	// тут мы удаляем только full архивы 
    OutDrvFspc = OutDrvObj.FreeSpace
    if(era!="e"){
    	writelog("Свободно "+OutDrvFspc +" но мы чистку не заказали")
