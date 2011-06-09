@@ -11,7 +11,7 @@ var nodrv,freen,driven,namef,a0
 var nndel,tedel,deltim,era
 var version
 
-version=" incbkup 1.15.1 28.05.2011 "
+version=" incbkup 1.15.2 09.06.2011 "
 
 // имя бэкап сервера по умолчанию
 bkserv="\\\\priz-backup\\"
@@ -29,6 +29,7 @@ nndel=0
 tedel=""
 era=""
 nszera="" 
+nsz=1
 
 //
 // обработка аргументов
