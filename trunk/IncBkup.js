@@ -855,6 +855,7 @@ function whererar()
   path="C:\\Program Files\\WinRAR"
 
   if (fso.FolderExists(path)) {
+	// на текущем компьютере
     //MsgBox "Папка существует"
     if(fso.FileExists(path+"\\rar.exe")){
       progpath=path
@@ -862,6 +863,7 @@ function whererar()
 
     }
   }else {
+	// на backup-сервере
     path=bkserv+"backbin"
     if (fso.FileExists(path+"\\rar.exe")){
       progpath=bkserv+"backbin"
