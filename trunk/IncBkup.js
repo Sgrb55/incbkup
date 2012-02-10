@@ -11,7 +11,7 @@ var nodrv,freen,driven,namef,a0
 var nndel,tedel,deltim,era
 var version
 
-version=" incbkup 1.15.3 19.06.2011 "
+version=" incbkup 1.15.4 (9.02.2012) "
 
 // имя бэкап сервера по умолчанию
 bkserv="\\\\priz-backup\\"
@@ -513,7 +513,7 @@ function copy1folder(dirz)
   var rc=-1
   ShellObj.CurrentDirectory=progpath
 
-  wrlog="rar.exe a -ilog"+elgf+" " + a0 + " -r0 -x@" + pref + "\\exl.txt  " + pref + "\\"+outfp+ fndate+"\\"+arcf + " \"" + dirz + "\" "
+  wrlog="rar.exe a -ilog"+elgf+" " + a0 + " -m1 -r0 -x@" + pref + "\\exl.txt  " + pref + "\\"+outfp+ fndate+"\\"+arcf + " \"" + dirz + "\" "
   rc=ShellObj.Run(wrlog ,0,true)
 
   // результаты работы rar.exe
