@@ -11,7 +11,7 @@ var nodrv,freen,driven,namef,a0
 var nndel,tedel,deltim,era
 var version
 
-version=" incbkup 1.15.4 (9.02.2012) "
+version=" incbkup 1.16 (26.05.2013) "
 
 // имя бэкап сервера по умолчанию
 bkserv="\\\\priz-backup\\"
@@ -796,7 +796,13 @@ function createus(pr,ne)
 
   try {
     ts = fso.OpenTextFile(pref+"\\dir.txt", 2, true)
-    ts.WriteLine ("c:\\Documents And Settings\\"+ntobj.UserName)
+	if (fso.FolderExists("c:\\Documents And Settings\\")) {
+		//"Папка существует" windows xp
+		ts.WriteLine ("c:\\Documents And Settings\\"+ntobj.UserName)
+	}else{
+		//папки нет (есть USERS) windows7/vista
+		ts.WriteLine ("c:\\Users\\"+ntobj.UserName)
+	}
     ts.WriteLine( "#d:\\" )
     ts.Close()
   }catch(err){
