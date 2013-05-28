@@ -796,12 +796,12 @@ function createus(pr,ne)
 
   try {
     ts = fso.OpenTextFile(pref+"\\dir.txt", 2, true)
-	if (fso.FolderExists("c:\\Documents And Settings\\")) {
-		//"Папка существует" windows xp
-		ts.WriteLine ("c:\\Documents And Settings\\"+ntobj.UserName)
-	}else{
-		//папки нет (есть USERS) windows7/vista
+	if (fso.FolderExists("c:\\Users\\")) {
+		//Папка существует windows7/vista
 		ts.WriteLine ("c:\\Users\\"+ntobj.UserName)
+	}else{
+		//папки нет windows XP
+		ts.WriteLine ("c:\\Documents And Settings\\"+ntobj.UserName)
 	}
     ts.WriteLine( "#d:\\" )
     ts.Close()
