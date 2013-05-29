@@ -1,5 +1,5 @@
 //*******************************************************************
-//* incbkup.js (sgrb)
+//* incbkup.js (sgrb55@gmail.com)
 //*******************************************************************
 var fso = WScript.CreateObject("Scripting.FileSystemObject")
 var ntobj = WScript.CreateObject("WScript.Network")
