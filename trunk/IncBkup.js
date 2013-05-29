@@ -11,7 +11,7 @@ var nodrv,freen,driven,namef,a0
 var nndel,tedel,deltim,era
 var version
 
-version=" incbkup 1.16 (26.05.2013) "
+version=" incbkup 1.16.1 (29.05.2013) "
 
 // имя бэкап сервера по умолчанию
 bkserv="\\\\priz-backup\\"
@@ -796,8 +796,10 @@ function createus(pr,ne)
 
   try {
     ts = fso.OpenTextFile(pref+"\\dir.txt", 2, true)
+    // проверка в какой системе работаем 
+    //(скорей всего не нужна из-за линка \Documents And Settings, но так лучше)
 	if (fso.FolderExists("c:\\Users\\")) {
-		//Папка существует windows7/vista
+		//Папка существует - windows7/vista/8
 		ts.WriteLine ("c:\\Users\\"+ntobj.UserName)
 	}else{
 		//папки нет windows XP
@@ -827,7 +829,6 @@ function createus(pr,ne)
 function nozfind()
 //поиск среди сетевых дисков етого самого диска Z: зачем? да на всякий случай чтоб не забыть как это делать
 {
-  
   var colDrives = ntobj.EnumNetworkDrives();
   var strMsg=""
 
