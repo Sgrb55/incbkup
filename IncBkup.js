@@ -306,7 +306,8 @@ switch(OutDrvObj.DriveType){
 writelog("  " + "Устройство бэкапа:"+ driven + " " + OutDrvObj.VolumeName +
         "(" + DrvType + ") " + OutDrvObj.FileSystem +" "+ OutDrvObj.ShareName +
         " Общий размер: " + OutDrvObj.TotalSize/1048576 + " Mб" +
-        " Свободное пространство: " + OutDrvObj.FreeSpace/1048576 + " Mб")
+        " Свободное пространство: " + OutDrvObj.FreeSpace/1048576 + " Mб" + 
+        " Используется RAR из " + progpath )
 // проверяем свободное место
 
 if(OutDrvFspc<10000){
