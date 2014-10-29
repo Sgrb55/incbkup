@@ -1,5 +1,5 @@
 //*******************************************************************
-//* incbkup.js (sgrb55@gmail.com)
+//* incbkup.js (sgrb)
 //*******************************************************************
 var fso = WScript.CreateObject("Scripting.FileSystemObject")
 var ntobj = WScript.CreateObject("WScript.Network")
@@ -11,7 +11,7 @@ var nodrv,freen,driven,namef,a0
 var nndel,tedel,deltim,era
 var version
 
-version=" incbkup 1.16.2 (11.06.2013) "
+version=" incbkup 1.17 (09.10.2014) "
 
 // имя бэкап сервера по умолчанию
 bkserv="\\\\priz-backup\\"
@@ -29,7 +29,7 @@ nndel=0
 tedel=""
 era=""
 nszera="" 
-nsz=1
+nsz=1000
 
 //
 // обработка аргументов
@@ -306,17 +306,16 @@ switch(OutDrvObj.DriveType){
 writelog("  " + "Устройство бэкапа:"+ driven + " " + OutDrvObj.VolumeName +
         "(" + DrvType + ") " + OutDrvObj.FileSystem +" "+ OutDrvObj.ShareName +
         " Общий размер: " + OutDrvObj.TotalSize/1048576 + " Mб" +
-        " Свободное пространство: " + OutDrvObj.FreeSpace/1048576 + " Mб" + 
-        " Используется RAR из " + progpath )
+        " Свободное пространство: " + OutDrvObj.FreeSpace/1048576 + " Mб")
 // проверяем свободное место
 
-if(OutDrvFspc<10000){
+if(OutDrvFspc<nsz){
     ShellObj.LogEvent(4, "*"+ WScript.Scriptname + " cp03 too low space on backup disk")
     writelog("Мало места на backup диске!!!") // Инрформационное сообщение
     WScript.Quit()
 }
 
-if(OutDrvFspc/1048576<1000){
+if(OutDrvFspc<2*nsz){
     ShellObj.LogEvent(4, "*"+ WScript.Scriptname + " cp04 warning low space on backup disk")
     writelog("Маловато места на backup диске") // Инрформационное сообщение
 } 
@@ -455,15 +454,25 @@ function copy1folder(dirz)
   // если строка начинается с \\ (сетевая папка)
   if(dirz.indexOf("\\\\")!=-1){
     id=1
-    l=dirz.length
+    l=dirz.length	// длина
     //ищем 2-й "\"
     lu=dirz.indexOf("\\",3)
     if(lu!=-1){
-      dll=dirz.substr(lu+1,dirz.length+1)
-      dln=dirz.substr(2,lu-2)
+      dll=dirz.substr(lu+1,dirz.length+1)	// имя каталога (сетевая папка)
+      dln=dirz.substr(2,lu-2)				// имя компа
+	  // доформировываем имя папки( и создаем ее
+      ff=pref + "\\" +outfp+ fndate+"\\"+dln
+	  try {
+	   fso.CreateFolder(ff)
+	  }catch(err){
+	        writelog("не могу создать " + ff + "  : " + err.number +" : "+ err.description) //Инрформационное сообщение
+	        err.clear
+	  }     
     }else{
       dll=dirz
       dln=dirz
+      writelog("не указана сетевая папка только компьютер:" + dirz ) //Инрформационное сообщение
+	  return      
     }
     // b
     luu=dll.indexOf("\\")
@@ -485,7 +494,8 @@ function copy1folder(dirz)
     id=0
     dl  =dirz+ "\\*.*"
     dln =dirz
-  }
+    ff=pref + "\\" +outfp+ fndate
+}
 
   if (!fso.FolderExists(dirz)){
     writelog("не могу открыть папку " + dirz ) //Инрформационное сообщение
@@ -504,7 +514,9 @@ function copy1folder(dirz)
     arrc+=c
   }
 
-  arcf = ntobj.ComputerName +"_"+arrc+  ".rar"
+  //arcf = ntobj.ComputerName +"_"+arrc+  ".rar"
+
+  arcf = arrc+  ".rar"
 
   // пример - запуск командного файла:
   //    rc=shellobj.Run ("C:\WINNT\system32\cmd.exe /K file.bat", 1,True)
@@ -514,7 +526,7 @@ function copy1folder(dirz)
   var rc=-1
   ShellObj.CurrentDirectory=progpath
 
-  wrlog="rar.exe a -ilog"+elgf+" " + a0 + " -m1 -r0 -x@" + pref + "\\exl.txt  " + pref + "\\"+outfp+ fndate+"\\"+arcf + " \"" + dirz + "\" "
+  wrlog="rar.exe a -ilog"+elgf+" " + a0 + " -m1 -r0 -x@" + pref + "\\exl.txt  " + ff + "\\"+arcf + " \"" + dirz + "\" "
   rc=ShellObj.Run(wrlog ,0,true)
 
   // результаты работы rar.exe
