@@ -11,7 +11,7 @@ var nodrv,freen,driven,namef,a0
 var nndel,tedel,deltim,era
 var version
 
-version=" incbkup 1.17 (09.10.2014) "
+version=" incbkup 1.18 (30.10.2014) "
 
 // имя бэкап сервера по умолчанию
 bkserv="\\\\priz-backup\\"
@@ -30,11 +30,13 @@ tedel=""
 era=""
 nszera="" 
 nsz=1000
+dirf="dir.txt"
+nlst=3
 
 //
 // обработка аргументов
 //
-// incbkup.js [i|f|fu|?d|<число>d] [<куда писать>|-] [<число>w|<число>m] [e] [число|числоK|числоM|числоG]
+// incbkup.js [i|f|fu|?d|<число>d [<куда писать>|- [<число>w|<число>m|- [e|- число|числоK|числоM|числоG|-]]]]
 
 // Первый параметр это тип бэкапа:
 //
@@ -65,7 +67,7 @@ nsz=1000
 // Если нужен четвертый параметр, а третий хочется пропустить, то вместо него ставят "-" (прочерк)
 // Значение по умолчанию <пусто>, то есть ничего не удалять.
 //
-// Следует иметь в виду что если указан последний параметр "е",
+// Следует иметь в виду что если указан параметр "е",
 // то в случае полного бэкапа удаляются все ранние инкрементальные архивы и соответствующие логи
 // кроме того проверяется своб.место хватит ли его на бэкап, считая р-р предыдущего полного бэкапа + 10%
 // в качестве прогнозируемого размера тек.бэкапа, и в случае если места нет сокращается количество 
@@ -73,41 +75,56 @@ nsz=1000
 // в случае инрементального бэкапа происходит то же.
 //
 // Кроме если не удается определить р-р бэкапа, если указано в командной строке <число>(в Кило,Мега,Гига или просто байтах),
-// то оно используется в качестве р-ра предыдущего полного бэкапа, если <число> отсуствует 
-// Значение по умолчанию <пусто>, то есть ничего не удалять.
+// то оно используется в качестве р-ра полного бэкапа
 //
 // Следует иметь в виду что если указан неправильный(ошибочный), то он игнорируется
 // без диагностики, а качестве значения используется значение по умолчанию
-//
+// вместо этого параметра тоже может быть прочерк, dvtcn 
+// в любом случае последним параметром служит имя файла-списка каталогов для бэкапа
+// по умолчанию "dir.txt"
 
-if (objarg.length>0){
-  types=objarg.Item(0)
-  if(objarg.length>1){
-    bkuppc=objarg.Item(1)
-    if(bkuppc=="-")bkuppc="!Z:\\"
-  } else{
-    bkuppc="!Z:\\"
+if (objarg.length>0){			// если есть параметры
+  types=objarg.Item(0)			// первый параметр - тип бэкапа
+  if(objarg.length>1){			// если их больше одного
+    bkuppc=objarg.Item(1)		// 2-й - куда писать 
+    if(bkuppc=="-")bkuppc="!Z:\\"	// если прочерк
+  } else{							// или пропущен
+    bkuppc="!Z:\\"					// то !Z:\\
   }
-  if(objarg.length>2){
-    deltim=objarg.Item(2)
-    if(deltim=="-")deltim=""
-  } else {
-    deltim=""
+  if(objarg.length>2){			// если параметров больше 3
+    deltim=objarg.Item(2)		// время сохранения бэкапов
+    if(deltim=="-")deltim=""	// если прочерк
+  } else {						// или пропущен
+    deltim=""					// то пусто
   }
   if(objarg.length>3){
-    era=objarg.Item(3)
-    if(objarg.length>4){
-	nszera=objarg.Item(4)
-    } else {
-    	nszera=""
-    }
+    era=objarg.Item(3)	// признак удаления
+    if(era=="-"){
+		era=""			// если прочерк
+		nlst=4
+	} else {
+		if(objarg.length>4){			// время удержания сохраненых файлов
+			nszera=objarg.Item(4)
+			if(nszera=="-")nszera=""	// если прочерк			
+		} else {
+			nszera=""
+		}
+		nlst=5
+	}	
   } else {
     era=""
+	nlst=3
+  }
+  if(objarg.length>nlst){		// последний параметр
+    dirf=objarg.Item(nlst)
+  } else {
+	dirf="dir.txt"  			// по умолчанию
   }
 }else{
    types="i"
    bkuppc="!Z:\\"
    era=""
+   deltim=""					//
 }
 
 // WScript.Echo (types+" "+bkuppc+" "+deltim)
@@ -191,7 +208,8 @@ if(nszera!=""){	// мин. кол-во диск. пространства
 testbk()   // проверим и подготовим место куда будем делать бэкап
 
 //читаем настроечный файл
-tmps=pref + "\\dir.txt"
+//tmps=pref + "\\dir.txt"
+tmps=pref + dirf
 
 var bkupsrc=Array(20)
 var nsrc
@@ -773,8 +791,8 @@ function testbk()
 
   if (fso.FolderExists(pref)) {
     //MsgBox "Папка существует"
-    if(!fso.FileExists(pref+"\\dir.txt")){
-      ShellObj.LogEvent(4, "*"+ WScript.Scriptname + " cp17 " + "cannot file dir.txt open")
+    if(!fso.FileExists(pref+dirf)){
+      ShellObj.LogEvent(4, "*"+ WScript.Scriptname + " cp17 " + "cannot file "+ dirf +" open")
       WScript.Quit()
     }
   }else if (createdr){
