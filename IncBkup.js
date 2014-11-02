@@ -209,7 +209,7 @@ testbk()   // проверим и подготовим место куда будем делать бэкап
 
 //читаем настроечный файл
 //tmps=pref + "\\dir.txt"
-tmps=pref + dirf
+tmps=pref + "\\" + dirf
 
 var bkupsrc=Array(20)
 var nsrc
@@ -791,8 +791,8 @@ function testbk()
 
   if (fso.FolderExists(pref)) {
     //MsgBox "Папка существует"
-    if(!fso.FileExists(pref+dirf)){
-      ShellObj.LogEvent(4, "*"+ WScript.Scriptname + " cp17 " + "cannot file "+ dirf +" open")
+    if(!fso.FileExists(pref+"\\"+dirf)){
+      ShellObj.LogEvent(4, "*"+ WScript.Scriptname + " cp17 " + "cannot file "+ pref+"\\"+dirf +" open")
       WScript.Quit()
     }
   }else if (createdr){
