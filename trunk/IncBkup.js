@@ -11,7 +11,7 @@ var nodrv,freen,driven,namef,a0
 var nndel,tedel,deltim,era
 var version
 
-version=" incbkup 1.18 (30.10.2014) "
+version=" incbkup 1.19 (06.11.2014) "
 
 // имя бэкап сервера по умолчанию
 bkserv="\\\\priz-backup\\"
@@ -32,12 +32,13 @@ nszera=""
 nsz=1000
 dirf="dir.txt"
 nlst=3
+namel="priz"
+pswd="priz"
 
 //
 // обработка аргументов
 //
-// incbkup.js [i|f|fu|?d|<число>d [<куда писать>|- [<число>w|<число>m|- [e|- число|числоK|числоM|числоG|-]]]]
-
+// incbkup.js [i|f|fu|?d|<число>d] [<куда писать>|-] [<число>w|<число>m|-] [e|-] [число|числоK|числоM|числоG|-] file.cfg
 // Первый параметр это тип бэкапа:
 //
 // i        инкрементальрый по биту доступа     \
@@ -79,8 +80,8 @@ nlst=3
 //
 // Следует иметь в виду что если указан неправильный(ошибочный), то он игнорируется
 // без диагностики, а качестве значения используется значение по умолчанию
-// вместо этого параметра тоже может быть прочерк, dvtcn 
-// в любом случае последним параметром служит имя файла-списка каталогов для бэкапа
+// вместо этого параметра тоже может быть прочерк, 
+// в любом случае последним параметром может служит имя файла-списка каталогов для бэкапа
 // по умолчанию "dir.txt"
 
 if (objarg.length>0){			// если есть параметры
@@ -226,7 +227,7 @@ try {
 i=0;
 
 while(!(inifo.AtEndOfStream)){
-    bkupsrc[i] = inifo.ReadLine()
+    bkupsrc[i] = inifo.ReadLine()	// читаем файл в bkupsrc[i]
     if(bkupsrc[i].length==-1) break
     i=i+1
 
@@ -302,7 +303,7 @@ if(types=="?d"){
   }
 }
 
-writelog("Начало backup"+version+": " )
+writelog("Incbkup "+version+" Начало backup файл конфигурации: "+dirf )
 
 //узнаем параметры устройства бэкапа
 var OutDrvObj = fso.GetDrive(driven)   //!!!
@@ -468,6 +469,15 @@ function copy1folder(dirz)
   if(dirz=="")return(1)
   if(dirz==" ")return(1)
   if(dirz.charAt(0)=="#")return(1)
+  if(dirz.charAt(0)==":"){
+	l=dirz.length	// длина
+	lnz=dirz.indexOf(" ")
+	if(lnz==-1)return(1)
+	if(l==lnz)return(1)
+    namel=dirz.substr(1,lnz)				// 
+	pswd=dirz.substr(lnz+1,l)				//
+	return(1)	
+  }
 
   // если строка начинается с \\ (сетевая папка)
   if(dirz.indexOf("\\\\")!=-1){
@@ -478,8 +488,10 @@ function copy1folder(dirz)
     if(lu!=-1){
       dll=dirz.substr(lu+1,dirz.length+1)	// имя каталога (сетевая папка)
       dln=dirz.substr(2,lu-2)				// имя компа
-	  // доформировываем имя папки( и создаем ее
-      ff=pref + "\\" +outfp+ fndate+"\\"+dln
+	  // доформировываем имя арх.папки и создаем ее FF
+	  ldf=dirf.indexOf(".")-1
+	  dirff=dirf.substr(1,ldf)
+      ff=pref + "\\" +outfp+ fndate+"\\"+dln +"("+dirff+")"
 	  try {
 	   fso.CreateFolder(ff)
 	  }catch(err){
@@ -492,7 +504,7 @@ function copy1folder(dirz)
       writelog("не указана сетевая папка только компьютер:" + dirz ) //Инрформационное сообщение
 	  return      
     }
-    // b
+    // 
     luu=dll.indexOf("\\")
     if(luu!=-1){
 
@@ -513,7 +525,7 @@ function copy1folder(dirz)
     dl  =dirz+ "\\*.*"
     dln =dirz
     ff=pref + "\\" +outfp+ fndate
-}
+  }
 
   if (!fso.FolderExists(dirz)){
     writelog("не могу открыть папку " + dirz ) //Инрформационное сообщение
@@ -534,7 +546,8 @@ function copy1folder(dirz)
 
   //arcf = ntobj.ComputerName +"_"+arrc+  ".rar"
 
-  arcf = arrc+  ".rar"
+  arcf = arrc+  ".rar"		//	имя арх.файла
+  // ff архивный каталог
 
   // пример - запуск командного файла:
   //    rc=shellobj.Run ("C:\WINNT\system32\cmd.exe /K file.bat", 1,True)
@@ -711,7 +724,7 @@ function testbk()
   //проверка и подключение умолчального диска бэкапа Z:
   if(bkuppc=="Z:\\"){
     try {
-      //ntobj.MapNetworkDrive("Z:",bkserv+"backup$",true , "priz222", "qqshka")
+      //ntobj.MapNetworkDrive("Z:",bkserv+"backup$",true , "priz", "priz")
       ntobj.MapNetworkDrive("Z:",bkserv+"backup$",true)
     } catch(err){
       if (!(err.number==-2147024811)){//
