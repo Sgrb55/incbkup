@@ -429,11 +429,14 @@ try {
 temp = "***"+ WScript.Scriptname + "cp06 бэкап завершен"+"\n"
 ShellObj.LogEvent(4, temp)
 //Wscript.Quit
+
 ///////////////////////////////////////// end of script //////////////////////////////////////////
 
 
 // ПОДПРОГРАММЫ
 //
+
+//*******************************************************************
 function CopyAllFolders()
 // копировать все папки в списке
 {
@@ -460,6 +463,7 @@ function CopyAllFolders()
      " После: " + OutDrvFspcAfter/1048576+ " Mб")
 }
 
+//*******************************************************************
 function copy1folder(dirz)
 // Копировать одну папку
 {
@@ -519,6 +523,27 @@ function copy1folder(dirz)
     }else{
       dln=dln+"_"+dll
     }
+    
+    // на некоторых системах по умолчанию обращение к шарам требовало идентификации(пусть даже фиктивной)
+    // поэтому делаем то что первым пришло в голову
+    try {
+        ntobj.RemoveNetworkDrive("Z:",true,true)
+    } catch(err) {
+        //не фатальная ошибка 
+        writelog("*"+ WScript.Scriptname + " cp110" +"remove error y:  " + err.number +" : "+ err.description) //Инрформационное сообщение
+        err.clear
+    }
+
+    try {
+      ntobj.MapNetworkDrive("Y:",dirz,true , "priz", "priz")
+      //ntobj.MapNetworkDrive("Y:",шара,true)
+    } catch(err){
+        //
+        writelog("*"+ WScript.Scriptname + " cp111 " + err.number +" : "+ err.description) //Инрформационное сообщение
+        err.clear
+        return(1)
+    }
+    dirz="Y:\\"
 
   }else{	// все остальные
     id=0
@@ -543,7 +568,7 @@ function copy1folder(dirz)
     if(c=="\\")c="_"
     arrc+=c
   }
-
+  
   //arcf = ntobj.ComputerName +"_"+arrc+  ".rar"
 
   arcf = arrc+  ".rar"		//	имя арх.файла
@@ -592,6 +617,7 @@ function copy1folder(dirz)
   return(0)
 }
 
+//*******************************************************************
 function DeleteOldFolders(outfpp,nddel)
 // удаляeм старые архивы
 // outfpp - тип бэкапа(inc/full)
@@ -629,6 +655,7 @@ function DeleteOldFolders(outfpp,nddel)
     timar=tar.getTime()         // абсолютная дата архива
     // с датой больше даты усечения  пропускаем
     if(timar>timdd)continue
+    //---------------------------------------------------------------------
     // удалить содержимое:
     var fcc=fso.getFolder(pref+"\\"+s)  // архивная папка
     var fff=new Enumerator(fcc.files)   // коллекция файлов
@@ -643,6 +670,7 @@ function DeleteOldFolders(outfpp,nddel)
     }
 
     fso.DeleteFolder(pref+"\\"+s,true)
+    //---------------------------------------------------------------------
     writelog("*папка "+s+" удалена")
     indx++
   }
@@ -692,6 +720,7 @@ function DeleteOldFolders(outfpp,nddel)
  writelog(" Свободное пространство после удаления: " + OutDrvFspcAfter/1048576+ " Mб")
 }
 
+//*******************************************************************
 function writelog(text)
 // запись строки логов
 {
@@ -710,6 +739,7 @@ function writelog(text)
 
 }
 
+//*******************************************************************
 function testbk()
 // проверка диска Z существования места и возможно создания каталога по имени компьютера и сл.файлов
 // диск z: вообще говоря не нужен, но удобно с его помощью определять свободное пространство
@@ -824,6 +854,7 @@ function testbk()
 
 }
 
+//*******************************************************************
 function createus(pr,ne)
 // создать каталог пользователя с именем его компльютера и прототипы файлов dir.txt и exl.txt
 {
@@ -869,6 +900,7 @@ function createus(pr,ne)
   }
 }
 
+//*******************************************************************
 function nozfind()
 //поиск среди сетевых дисков етого самого диска Z: зачем? да на всякий случай чтоб не забыть как это делать
 {
@@ -899,6 +931,7 @@ function nozfind()
 
 }
 
+//*******************************************************************
 function whererar()
 // где же RAR
 {
@@ -927,6 +960,7 @@ function whererar()
 
 }
 
+//*******************************************************************
 function getprevbksz(outfpp)
 // получить размер предыдущего бэкапа
 // outfpp - тип (Full/Inc) бэкапа
@@ -999,4 +1033,56 @@ function getprevbksz(outfpp)
   lastfull=""
   return -1
 }
+
+///////////////////////////////
+var objFSO = CreateObject("Scripting.FileSystemObject")
+function erase(sFldr)
+var oD, cF, cD, oI 
+oD = objFSO.GetFolder(sFldr)
+cF = new Enumerator(oD.Files)
+for(;!cF.atEnd();cF.moveNext()){
+      // делаем т.е. удаляем
+      ss=cF.item().Name
+      fso.DeleteFile(cF.item().Path,true)
+      writelog(" файл "+ss+" удален")
+}
+cD = new Enumerator(oD.SubFolders)
+for (; !cD.atEnd(); cD.moveNext()){
+	fso.DeleteFolder(cD.item().Path,true)
+	erase(sFldr)
+	
+}
+
+On Error Resume Next
+intDays = Int(Wscript.arguments.Item(0))
+strFldr = Wscript.arguments.Item(1)
+
+Set objFSO = CreateObject("Scripting.FileSystemObject")
+DelOld strFldr, intDays
+
+Function DelOld(sFldr, iDays)
+On Error Resume Next
+   Dim oD, cF, cD, oI
+
+   Set oD = objFSO.GetFolder(sFldr)
+   Set cF = oD.Files
+   Set cD = oD.SubFolders
+
+   For Each oI In cF
+      If DateDiff("d", oI.DateLastModified, Now) > iDays Then
+         WScript.Echo oI.Path
+         oI.Attributes = 0
+         oI.Delete
+      End If
+   Next
+
+   For Each oI In cD
+      DelOld oI.Path, iDays
+      If oI.Size = 0 Then
+         oI.Attributes = 0
+         oI.Delete
+      End If
+   Next
+End Function
+
 
