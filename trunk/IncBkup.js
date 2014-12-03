@@ -11,7 +11,7 @@ var nodrv,freen,driven,namef,a0
 var nndel,tedel,deltim,era
 var version
 
-version=" incbkup 1.19 (06.11.2014) "
+version=" incbkup 1.19.1 (03.12.2014) "
 
 // имя бэкап сервера по умолчанию
 bkserv="\\\\priz-backup\\"
@@ -32,8 +32,8 @@ nszera=""
 nsz=1000
 dirf="dir.txt"
 nlst=3
-namel="priz"
-pswd="priz"
+namel="priz"	// имя
+pswd="priz"		// и пароль по умолчанию
 
 //
 // обработка аргументов
@@ -400,6 +400,15 @@ if((outfp=="Full")&&(era=="e"))DeleteOldFolders("Inc",1)
 //отмечаем дату и время окончания работы
 var edate=new Date()
 writelog("Работа закончена: " + edate.toLocaleString())
+// отключаем Y: если использовался
+try {
+        ntobj.RemoveNetworkDrive("Y:",true,true)
+} catch(err) {
+        //игнорируя ошибки 
+        //writelog("*"+ WScript.Scriptname + " cp110" +"remove error y:  " + err.number +" : "+ err.description) //Инрформационное сообщение
+        err.clear
+}
+
 // отключаем z диск
 if((driven=="Z")||(driven=="z")){
   try {
@@ -478,7 +487,7 @@ function copy1folder(dirz)
 	lnz=dirz.indexOf(" ")
 	if(lnz==-1)return(1)
 	if(l==lnz)return(1)
-    namel=dirz.substr(1,lnz)				// 
+    namel=dirz.substr(1,lnz-1)				// 
 	pswd=dirz.substr(lnz+1,l)				//
 	return(1)	
   }
@@ -488,19 +497,23 @@ function copy1folder(dirz)
     id=1
     l=dirz.length	// длина
     //ищем 2-й "\"
-    lu=dirz.indexOf("\\",3)
+    lu=dirz.indexOf("\\",3)	// 2 backslash
     if(lu!=-1){
       dll=dirz.substr(lu+1,dirz.length+1)	// имя каталога (сетевая папка)
       dln=dirz.substr(2,lu-2)				// имя компа
-	  // доформировываем имя арх.папки и создаем ее FF
-	  ldf=dirf.indexOf(".")-1
-	  dirff=dirf.substr(1,ldf)
-      ff=pref + "\\" +outfp+ fndate+"\\"+dln +"("+dirff+")"
+	  // доформировываем имя арх.папки добавив имя файла конфигурации
+	  ll=dirf.length
+	  ldf=dirf.indexOf(".")
+	  dirff=dirf.substr(0,ldf)+"_"+dirf.substr(ldf+1,ll)
+	  //namef=pref + "\\" +outfp+ fndate
+      ff=pref+ "\\" + outfp+ fndate+"\\"+dln +"("+dirff+")"
 	  try {
 	   fso.CreateFolder(ff)
 	  }catch(err){
+		  if (!(err.number==-2146828230)){// уже есть
 	        writelog("не могу создать " + ff + "  : " + err.number +" : "+ err.description) //Инрформационное сообщение
-	        err.clear
+	      }
+	      err.clear
 	  }     
     }else{
       dll=dirz
@@ -508,14 +521,13 @@ function copy1folder(dirz)
       writelog("не указана сетевая папка только компьютер:" + dirz ) //Инрформационное сообщение
 	  return      
     }
-    // 
-    luu=dll.indexOf("\\")
+    //------------------------------------------------
+    luu=dll.indexOf("\\")	// 3-бэкслаш нужно-ли можно-ли?
     if(luu!=-1){
 
       la=luu+lu+1
     }else{
-      la=l+1
-      dirz=dirz+"\\"
+      la=l
     }
     // формируем имя архива и источник откуда писать
     if (luu!=-1){
@@ -523,19 +535,20 @@ function copy1folder(dirz)
     }else{
       dln=dln+"_"+dll
     }
+    //------------------------------------------------
     
     // на некоторых системах по умолчанию обращение к шарам требовало идентификации(пусть даже фиктивной)
     // поэтому делаем то что первым пришло в голову
     try {
-        ntobj.RemoveNetworkDrive("Z:",true,true)
+        ntobj.RemoveNetworkDrive("Y:",true,true)
     } catch(err) {
         //не фатальная ошибка 
-        writelog("*"+ WScript.Scriptname + " cp110" +"remove error y:  " + err.number +" : "+ err.description) //Инрформационное сообщение
+        //writelog("*"+ WScript.Scriptname + " cp110" +"remove error y:  " + err.number +" : "+ err.description) //Инрформационное сообщение
         err.clear
     }
 
     try {
-      ntobj.MapNetworkDrive("Y:",dirz,true , "priz", "priz")
+      ntobj.MapNetworkDrive("Y:",dirz,true , namel, pswd)
       //ntobj.MapNetworkDrive("Y:",шара,true)
     } catch(err){
         //
@@ -655,22 +668,9 @@ function DeleteOldFolders(outfpp,nddel)
     timar=tar.getTime()         // абсолютная дата архива
     // с датой больше даты усечения  пропускаем
     if(timar>timdd)continue
-    //---------------------------------------------------------------------
     // удалить содержимое:
-    var fcc=fso.getFolder(pref+"\\"+s)  // архивная папка
-    var fff=new Enumerator(fcc.files)   // коллекция файлов
-
-    // для каждого элемента списка бэкапов
-    for(;!fff.atEnd();fff.moveNext()){
-      // делаем т.е. удаляем
-      ss=fff.item().Name
-      fso.DeleteFile(pref+"\\"+s+"\\"+ss,true)
-      writelog(" файл "+ss+" удален")
-      indx++
-    }
-
-    fso.DeleteFolder(pref+"\\"+s,true)
-    //---------------------------------------------------------------------
+    erase(pref+"\\"+s)
+    fso.DeleteFolder(pref+"\\"+s,true)	
     writelog("*папка "+s+" удалена")
     indx++
   }
@@ -868,7 +868,6 @@ function createus(pr,ne)
     WScript.Quit()
   }
 
-
   try {
     ts = fso.OpenTextFile(pref+"\\dir.txt", 2, true)
     // проверка в какой системе работаем 
@@ -1035,54 +1034,22 @@ function getprevbksz(outfpp)
 }
 
 ///////////////////////////////
-var objFSO = CreateObject("Scripting.FileSystemObject")
 function erase(sFldr)
-var oD, cF, cD, oI 
-oD = objFSO.GetFolder(sFldr)
-cF = new Enumerator(oD.Files)
-for(;!cF.atEnd();cF.moveNext()){
+{
+  var oD, cF, cD, oI 
+  oD = fso.GetFolder(sFldr)
+  cF = new Enumerator(oD.Files)
+  for(;!cF.atEnd();cF.moveNext()){
       // делаем т.е. удаляем
       ss=cF.item().Name
       fso.DeleteFile(cF.item().Path,true)
       writelog(" файл "+ss+" удален")
+  }
+  cD = new Enumerator(oD.SubFolders)
+  for (; !cD.atEnd(); cD.moveNext()){
+	erase(cD.item().Path)
+	ss=cD.item().Name
+	fso.DeleteFolder(cD.item().Path,true)	
+    writelog("-папка "+ss+" удалена")
+  }
 }
-cD = new Enumerator(oD.SubFolders)
-for (; !cD.atEnd(); cD.moveNext()){
-	fso.DeleteFolder(cD.item().Path,true)
-	erase(sFldr)
-	
-}
-
-On Error Resume Next
-intDays = Int(Wscript.arguments.Item(0))
-strFldr = Wscript.arguments.Item(1)
-
-Set objFSO = CreateObject("Scripting.FileSystemObject")
-DelOld strFldr, intDays
-
-Function DelOld(sFldr, iDays)
-On Error Resume Next
-   Dim oD, cF, cD, oI
-
-   Set oD = objFSO.GetFolder(sFldr)
-   Set cF = oD.Files
-   Set cD = oD.SubFolders
-
-   For Each oI In cF
-      If DateDiff("d", oI.DateLastModified, Now) > iDays Then
-         WScript.Echo oI.Path
-         oI.Attributes = 0
-         oI.Delete
-      End If
-   Next
-
-   For Each oI In cD
-      DelOld oI.Path, iDays
-      If oI.Size = 0 Then
-         oI.Attributes = 0
-         oI.Delete
-      End If
-   Next
-End Function
-
-
