@@ -11,7 +11,7 @@ var nodrv,freen,driven,namef,a0
 var nndel,tedel,deltim,era
 var version
 
-version=" incbkup 1.19.1 (03.12.2014) "
+version=" incbkup 1.19.2 (04.12.2014) "
 
 // имя бэкап сервера по умолчанию
 bkserv="\\\\priz-backup\\"
@@ -506,7 +506,7 @@ function copy1folder(dirz)
 	  ldf=dirf.indexOf(".")
 	  dirff=dirf.substr(0,ldf)+"_"+dirf.substr(ldf+1,ll)
 	  //namef=pref + "\\" +outfp+ fndate
-      ff=pref+ "\\" + outfp+ fndate+"\\"+dln +"("+dirff+")"
+      ff=pref+ "\\" + outfp+ fndate+"\\"+dirff
 	  try {
 	   fso.CreateFolder(ff)
 	  }catch(err){
